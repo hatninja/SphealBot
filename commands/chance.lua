@@ -1,3 +1,4 @@
+--Random test program i did.
 local chance = {}
 
 function chance:command(args,message)

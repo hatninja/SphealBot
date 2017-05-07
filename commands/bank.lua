@@ -1,12 +1,17 @@
---TO-DO: Change to hash table instead of array. I imagine it must take a ton of memory space the current way.
+--[[Bank - Implements a currency system and API functions.
+
+]]
 local bank = {
 	nextsave = os.time()+60,
-	changed = true
+	changed = true,
+	
+	accounts = {}
 }
 
-local accounts = {}
-
-function bank:init() --Load from memory!
+local bot = false
+function bank:init(b) --Load from memory!
+	bot = b
+	
 	self:load()
 end
 
@@ -43,7 +48,7 @@ function bank:command(args,message)
 			end
 		elseif args[1] == "transfer" then
 			if self:getAccount(message.author.id) then
-				if os.time() > accounts[message.author.id][2] then
+				if os.time() > self.accounts[message.author.id][2] then
 					if args[2] and args[2]:sub(1,2) == "<@" and args[2]:sub(-1,-1) == ">" then
 						local id = args[2]:sub(3,-2)
 						if args[2]:sub(1,3) == "<@!" then
@@ -58,7 +63,7 @@ function bank:command(args,message)
 										self:takePoints(message.author.id, amount)
 										self:givePoints(id, amount)
 										
-										accounts[message.author.id][2] = os.time()+30
+										self.accounts[message.author.id][2] = os.time()+30
 										
 										message.channel:sendMessage(message.author.username.." transferred "..amount.."P!")
 									else
@@ -87,34 +92,34 @@ function bank:command(args,message)
 end
 
 function bank:newAccount(id,amount)
-	accounts[id] = {tonumber(amount) or 100,0}
+	self.accounts[id] = {tonumber(amount) or 100,0}
 	self:awake()
 end
 
 function bank:getAccount(id)
-	return accounts[id] and accounts[id][1]
+	return self.accounts[id] and self.accounts[id][1]
 end
 
 function bank:givePoints(id, amount)
-	if accounts[id] then
+	if self.accounts[id] then
 		self:awake()
-		accounts[id][1] = accounts[id][1] + math.floor(math.abs(amount))
+		self.accounts[id][1] = self.accounts[id][1] + math.floor(math.abs(amount))
 		return true
 	end
 
 end
 
 function bank:takePoints(id, amount)
-	if accounts[id] then
+	if self.accounts[id] then
 		self:awake()
-		accounts[id][1] = accounts[id][1] - math.floor(math.abs(amount))
+		self.accounts[id][1] = self.accounts[id][1] - math.floor(math.abs(amount))
 		return true
 	end
 end
 
 function bank:save()
-	local file = io.open("data/accounts", "w")
-	for id,data in ipairs(accounts) do
+	local file = io.open(bot.path.."data/accounts", "w")
+	for id,data in pairs(self.accounts) do
 		file:write(id..":"..data[1].."\n")
 	end
 	file:close()
@@ -124,9 +129,13 @@ function bank:save()
 end
 
 function bank:load()
-	for line in io.lines("data/accounts") do
-		local data = string.split(line,":")
-		self:newAccount(data[1], data[2])
+	local file = io.open(bot.path.."data/accounts", "r")
+	if file then
+		for line in file:lines(bot.path.."data/accounts") do
+			local data = string.split(line,":")
+			self:newAccount(data[1], data[2])
+		end
+		file:close()
 	end
 end
 

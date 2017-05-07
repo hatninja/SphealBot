@@ -1,3 +1,4 @@
+--Daily lottery function!
 local lottery = {
 	channel = false,
 	
@@ -6,16 +7,17 @@ local lottery = {
 	date = math.floor(os.time()/60/60/24)
 }
 
-local client,send = false,false
-function lottery:init(p,d,c,s)
-	client,send = c,s
-	lottery_reset()
-	lottery_load()
+local bot = false
+function lottery:init(b)
+	bot = b
+	
+	self:reset()
+	self:load()
 end
 
 function lottery:update()
-	if self.date ~= math.floor(os.time()/60/60/24) then
-		lottery_reset()
+	if self.date ~= math.floor(os.time()/60/60/24) then --It's a new day!
+		self:reset() --Give the prize to the winner and start again.
 	end
 end
 
@@ -25,10 +27,10 @@ function lottery:command(args,message)
 			if not args[2] or tonumber(args[2]) and tonumber(args[2]) > 10 then
 				local amount = (tonumber(args[2]) or 10)
 				if not self.entrants[message.author] then 
-					local balance = send("bank","balance",message.author.id)
+					local balance = bot.send("bank","balance",message.author.id)
 					if balance then
 						if balance >= (tonumber(args[2]) or 10) then
-							if send("bank","take",message.author.id,amount) then
+							if bot.send("bank","take",message.author.id,amount) then
 								self.entrants[message.author] = table.count(self.entrants)+1
 								self.jackpot = self.jackpot + amount
 								message:reply("**Daily Lottery:** <@"..message.author.id.."> entered with `"..amount.."P`\nThe jackpot is now `"..math.floor(self.jackpot).."P`")
@@ -56,7 +58,7 @@ function lottery:command(args,message)
 			for role in message.member.roles do
 				if role.name == "Bot Manager" then
 					self.channel = message.channel
-					lottery_save()
+					self:save()
 					message:reply("**Daily Lottery** is now set up in "..self.channel.mentionString.."!")
 					break
 				end
@@ -66,7 +68,7 @@ function lottery:command(args,message)
 		if message.member then
 			for role in message.member.roles do
 				if role.name == "Bot Manager" then
-					lottery_reset()
+					self:reset()
 					break
 				end
 			end
@@ -78,33 +80,33 @@ function lottery:command(args,message)
 	end
 end
 
-function lottery_reset()
-	local random = math.random(1,table.count(lottery.entrants))
-	for user,count in pairs(lottery.entrants) do
+function lottery:reset()
+	local random = math.random(1,table.count(self.entrants))
+	for user,count in pairs(self.entrants) do
 		if random == count then
-			send("bank","give",user.id,lottery.jackpot)
-			lottery.channel:sendMessage("**Daily Lottery:** <@"..user.id.."> won the Jackpot! `+"..lottery.jackpot.."P` given.")
+			bot.send("bank","give",user.id,self.jackpot)
+			self.channel:sendMessage("**Daily Lottery:** <@"..user.id.."> won the Jackpot! `+"..self.jackpot.."P` given.")
 		end
 	end
-	if lottery.channel then
-		lottery.channel:sendMessage("**Daily Lottery:** A new daily lottery is now running, feel free to enter!")
+	if self.channel then
+		self.channel:sendMessage("**Daily Lottery:** A new daily lottery is now running, feel free to enter!")
 	end
 	
 	date = math.floor(os.time()/60/60/24)
-	lottery.entrants = {}
-	lottery.jackpot = 0
+	self.entrants = {}
+	self.jackpot = 0
 end
 
-function lottery_save()
-	local file = io.open("data/lotterylocation", "w")
-	file:write(lottery.channel.id)
+function lottery:save()
+	local file = io.open(bot.path.."data/lotterylocation", "w") --For some reason, this crashes!
+	file:write(self.channel.id)
 	file:close()
 end
 
-function lottery_load()
-	local file = io.open("data/lotterylocation", "r")
+function lottery:load()
+	local file = io.open(bot.path.."data/lotterylocation", "r")
 	if file then
-		lottery.channel = client:getChannel(file:read())
+		self.channel = bot.client:getChannel(file:read())
 		file:close()
 	end
 end
