@@ -131,7 +131,7 @@ end
 function bank:load()
 	local file = io.open(bot.path.."data/accounts", "r")
 	if file then
-		for line in file:lines(bot.path.."data/accounts") do
+		for line in file:lines() do
 			local data = string.split(line,":")
 			self:newAccount(data[1], data[2])
 		end
