@@ -38,6 +38,9 @@ client:on('ready', function()
 	end
 	
 	print("Initialized "..table.count(commands).." commands.")
+	
+	client:setGameName(prefix.."help")
+	
 	print("Now running!")
 	
 	--Update
@@ -66,11 +69,15 @@ client:on('messageCreate', function(message)
 			else
 				print("Invalid command: \""..message.content:sub(2,(start or 0)-1).."\"")
 			end
-		else --Special help command that is handled directly!
+		else
 			local msg = "**Command List:**\n```\n"
 			for k,v in pairs(help) do
 				msg=msg..k..":\n"
 				for i=1,#v do
+					if #msg + #v[i] > 1995 then
+						message:reply(msg.."\n```")
+						msg = "```\n"
+					end
 					msg=msg..v[i].."\n"
 				end
 			end
