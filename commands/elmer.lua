@@ -1,13 +1,13 @@
 local elmer = {
 	translation = {
 		{"double","dubbuh"},
-		{"lla","ya"},
-		{"very","vewy"},
-		{"lol","wol"},
+		{"ll","w"},
+		{"lol","wo$!"},
 		{"the","da"},
 		{"er","uh"},
 		{"l","w"},
-		{"r","w"}
+		{"r","w"},
+		{"$!","l"}
 	}
 }
 

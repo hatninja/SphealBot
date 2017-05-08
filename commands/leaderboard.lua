@@ -9,7 +9,6 @@ local leaderboard = {
 }
 
 function leaderboard:init()
-	return "Mechanic","Leaderboards for everything!"
 end
 
 function leaderboard:receive(name,user,mode,score)

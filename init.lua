@@ -17,7 +17,7 @@ function send(to, ...) --Allows the commands to send data to eachother. 'Special
 end
 local help = {}
 --Container for common functions and variables we want to use.
-local bot = {discordia=discordia,client=client,path=path,send=send,prefix=prefix} 
+local bot = {discordia=discordia,client=client,path=path,send=send,prefix=prefix,starttime=os.time()} 
 
 client:on('ready', function()
 	--Initialize
@@ -32,8 +32,10 @@ client:on('ready', function()
 			--Initialize command
 			local category, description = command:init(bot)
 			--Entry for the help menu.
-			if not help[category] then help[category] = {} end
-			table.insert(help[category],prefix..k.." - "..description)
+			if category then
+				if not help[category] then help[category] = {} end
+				table.insert(help[category],prefix..k.." - "..description)
+			end
 		end
 	end
 	
@@ -47,7 +49,12 @@ client:on('ready', function()
 	while true do
     	sleep(1000)
 		for k,v in pairs(commands) do
-			if v.update then v:update(client) end
+			if v.update then
+				local suc,err = pcall(v.update,v)
+				if err then
+					print(k.." update: "..err)
+				end
+			end
 		end
 	end
 end)
