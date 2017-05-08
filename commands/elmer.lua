@@ -16,6 +16,7 @@ function elmer:command(args,message)
 	for i,v in ipairs(self.translation) do
 		msg = msg:gsub(v[1],v[2])
 	end
+	message:reply(msg)
 end
 
 return elmer
