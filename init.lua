@@ -16,7 +16,7 @@ function send(to, ...) --Allows the commands to send data to eachother. 'Special
 	end
 end
 --Container for common functions and variables we want to use.
-local bot = {discordia=discordia,client=client,path=path,send=send} 
+local bot = {discordia=discordia,client=client,path=path,send=send,prefix=prefix} 
 
 client:on('ready', function()
 	--Initialize
@@ -24,8 +24,10 @@ client:on('ready', function()
 	
 	for file in io.popen("ls "..path.."commands/"):lines() do
 		local command=require(path.."commands/"..file)--Some
-		if command.init then command:init(bot) end
 		commands[file:sub(1,-5)] = command
+	end
+	for k,command in pairs(commands) do
+		if command.init then command:init(bot) end
 	end
 	
 	print("Initialized "..table.count(commands).." commands.")
@@ -49,7 +51,10 @@ client:on('messageCreate', function(message)
 			if command then
 				if command.command then
 					local args = (fin or fin ~= #message.content) and string.split(message.content:sub((fin or 0)+1,-1)," ")
-					command:command(args,message)
+					local suc,err = pcall(command.command,command,args,message)
+					if err then
+						message:reply(err)
+					end
 				end
 			else
 				print("Invalid command: \""..message.content:sub(2,(start or 0)-1).."\"")
@@ -60,8 +65,9 @@ client:on('messageCreate', function(message)
 	elseif message.user ~= client.user then --Plain message
 		for k,v in pairs(commands) do
 			if v.message then
-				if not v:message(message) then
-					--Help Menu
+				local suc,err = pcall(v:message(message))
+				if err then
+					message:reply(err)
 				end
 			end
 		end

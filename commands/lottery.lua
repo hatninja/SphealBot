@@ -1,4 +1,5 @@
 --Daily lottery function!
+local lotteryratio = 1/3
 local lottery = {
 	channel = false,
 	
@@ -18,6 +19,7 @@ end
 function lottery:update()
 	if self.date ~= math.floor(os.time()/60/60/24) then --It's a new day!
 		self:reset() --Give the prize to the winner and start again.
+		self.date = math.floor(os.time()/60/60/24)
 	end
 end
 
@@ -44,11 +46,24 @@ function lottery:command(args,message)
 						message:reply("**Daily Lottery:** You need a bank account!")
 					end
 				else
-					message:reply("**Daily Lottery:** You're already entered!")
+					message:reply("**Daily Lottery:** You've already entered!")
 				end
 			else
 				message:reply("**Daily Lottery:** Invalid number! The minimum is 10P")
 			end
+		elseif args[1] == "status" then
+			message:reply("**Daily Lottery** The lottery has "..table.count(self.entrants).." participants.\nThe jackpot total is `"..math.floor(self.jackpot).."P`\nPercentage: "..((lotteryratio)*100).."%")
+		elseif args[1] == "reset" then
+			if message.member then
+				for role in message.member.roles do
+					if role.name == "Bot Manager" then
+						self:reset()
+						break
+					end
+				end
+			end
+		else
+			message:reply("**Daily Lottery** enter daily lotterys using `!lottery enter (optional amount)`!\nYou can check the status using `!lottery status`")
 		end
 	end
 		
@@ -64,35 +79,32 @@ function lottery:command(args,message)
 				end
 			end
 		end
-	elseif args[1] == "reset" then
-		if message.member then
-			for role in message.member.roles do
-				if role.name == "Bot Manager" then
-					self:reset()
-					break
-				end
-			end
-		end
-	end
-	
-	if args[1] == "help" then
-		message:reply("**Daily Lottery** enter daily lotterys using `!lottery enter (optional amount)`!")
 	end
 end
 
 function lottery:reset()
-	local random = math.random(1,table.count(self.entrants))
-	for user,count in pairs(self.entrants) do
-		if random == count then
-			bot.send("bank","give",user.id,self.jackpot)
-			self.channel:sendMessage("**Daily Lottery:** <@"..user.id.."> won the Jackpot! `+"..self.jackpot.."P` given.")
+	local randomtable = {}
+	for i=1,table.count(self.entrants) do randomtable[i] = i end
+	
+	local winners = math.ceil(#randomtable * lotteryratio)
+	local picks = 0
+	while picks < winners do
+		local random = math.random(1,#randomtable)
+		for user,count in pairs(self.entrants) do
+			if randomtable[random] == count then
+				bot.send("bank","give",user.id,self.jackpot/winners)
+				self.channel:sendMessage("**Daily Lottery:** <@"..user.id.."> won the Jackpot! `+"..math.floor(self.jackpot/winners).."P`")
+			end
 		end
+		table.remove(randomtable,random)
+		picks = picks + 1
 	end
+	
+	
 	if self.channel then
 		self.channel:sendMessage("**Daily Lottery:** A new daily lottery is now running, feel free to enter!")
 	end
 	
-	date = math.floor(os.time()/60/60/24)
 	self.entrants = {}
 	self.jackpot = 0
 end
