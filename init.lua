@@ -15,6 +15,7 @@ function send(to, ...) --Allows the commands to send data to eachother. 'Special
 		return commands[to]:receive(...)
 	end
 end
+local help = {}
 --Container for common functions and variables we want to use.
 local bot = {discordia=discordia,client=client,path=path,send=send,prefix=prefix} 
 
@@ -27,7 +28,13 @@ client:on('ready', function()
 		commands[file:sub(1,-5)] = command
 	end
 	for k,command in pairs(commands) do
-		if command.init then command:init(bot) end
+		if command.init then
+			--Initialize command
+			local category, description = command:init(bot)
+			--Entry for the help menu.
+			if not help[category] then help[category] = {} end
+			table.insert(help[category],prefix..k.." - "..description)
+		end
 	end
 	
 	print("Initialized "..table.count(commands).." commands.")
@@ -60,7 +67,14 @@ client:on('messageCreate', function(message)
 				print("Invalid command: \""..message.content:sub(2,(start or 0)-1).."\"")
 			end
 		else --Special help command that is handled directly!
-			
+			local msg = "**Command List:**\n```\n"
+			for k,v in pairs(help) do
+				msg=msg..k..":\n"
+				for i=1,#v do
+					msg=msg..v[i].."\n"
+				end
+			end
+			message:reply(msg.."```")
 		end
 	elseif message.user ~= client.user then --Plain message
 		for k,v in pairs(commands) do

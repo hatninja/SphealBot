@@ -11,6 +11,10 @@ local elmer = {
 	}
 }
 
+function elmer:init()
+	return "Chat", "Have Elmer Fudd repeat what you say!"
+end
+
 function elmer:command(args,message)
 	local msg = table.concat(args," ")
 	for i,v in ipairs(self.translation) do

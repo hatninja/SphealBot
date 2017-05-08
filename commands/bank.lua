@@ -13,6 +13,8 @@ function bank:init(b) --Load from memory!
 	bot = b
 	
 	self:load()
+	
+	return "Mechanic","Manage currency!"
 end
 
 function bank:update()

@@ -4,6 +4,10 @@ local leaderboard = {
 	affixes = {},
 }
 
+function leaderboard:init()
+	return "Mechanic","Leaderboards for everything!"
+end
+
 function leaderboard:receive(name,user,mode,score)
 	if not self.boards[name] then self.boards[name] = {} end
 	if mode == "set" then

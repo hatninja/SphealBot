@@ -14,6 +14,8 @@ function lottery:init(b)
 	
 	self:reset()
 	self:load()
+	
+	return "Mechanic","The daily lottery, share your coins!"
 end
 
 function lottery:update()
