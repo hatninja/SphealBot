@@ -93,7 +93,7 @@ client:on('messageCreate', function(message)
 	elseif message.user ~= client.user then --Plain message
 		for k,v in pairs(commands) do
 			if v.message then
-				local suc,err = pcall(v:message(message))
+				local suc,err = pcall(v.message,v,message)
 				if err then
 					message:reply(err)
 				end

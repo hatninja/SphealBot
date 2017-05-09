@@ -54,7 +54,7 @@ function lottery:command(args,message)
 				message:reply("**Daily Lottery:** Invalid number! The minimum is 10P")
 			end
 		elseif args[1] == "status" then
-			message:reply("**Daily Lottery** The lottery has "..table.count(self.entrants).." participants.\nThe jackpot total is `"..math.floor(self.jackpot).."P`\nNumber of Winners: "..math.ceil(table.count(self.entrants) * lotteryratio).."\nMinutes Left: "..((math.floor(os.time()/60/60/24)+1)*24*60)-os.time())
+			--message:reply("**Daily Lottery** The lottery has "..table.count(self.entrants).." participants.\nThe jackpot total is `"..math.floor(self.jackpot).."P`\nNumber of Winners: "..math.ceil(table.count(self.entrants) * lotteryratio).."\nMinutes Left: "..((math.floor(os.time()/60/60/24)+1)*24*60)-os.time())
 			message:reply(string.format("**Daily Lottery** Win ratio: %d/%d\nThe jackpot total is `%dP`\nMinutes Left: %.1f", math.ceil(table.count(self.entrants) * lotteryratio), table.count(self.entrants), math.floor(self.jackpot), ((math.floor(os.time()/60/60/24)+1)*24*60)-os.time()/60))
 		elseif args[1] == "reset" then
 			if message.member then

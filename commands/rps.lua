@@ -3,6 +3,7 @@ local rps = {
 	requests = {},
 }
 
+
 local bot = false
 function rps:init(b)
 	bot = b
