@@ -12,12 +12,13 @@ local format = string.format --TO-DO: Use this for fasts
 math.randomseed(os.time())
 math.random() math.random()
 
+local status = false
 local modified = {} --Last modified times for each command, this allows us to dynamically update commands without stopping the bot!
 local help = {} --Stores information for the help menu
 local commands = {} --The table used to access each command object.
 
 local bot = { --Container for common functions and variables we want to use.
-	discordia=discordia, client=client, path=path, prefix=prefix,
+	discordia=discordia, client=client, path=path, prefix=prefix, status=status,
 	send=function(to, ...) --Allows the commands to send data to eachother. 'Specially useful for bank features.
 		if commands[to] and commands[to].receive then
 			return commands[to]:receive(...)
@@ -82,17 +83,28 @@ client:on('messageCreate', function(message)
 		local start, fin = message.content:find(" ")
 		local name = message.content:sub(2,(start or 0)-1)
 		if name ~= "help" then
-			local command = commands[name]
-			if command then
-				if command.command then
-					local args = (fin or fin ~= #message.content) and string.split(message.content:sub((fin or 0)+1,-1)," ")
-					local suc,err = pcall(command.command,command,args,message)
-					if not suc and err then
-						message:reply(err)
+			if name ~= "here" then
+				local command = commands[name]
+				if command then
+					if command.command then
+						local args = (fin or fin ~= #message.content) and string.split(message.content:sub((fin or 0)+1,-1)," ")
+						local suc,err = pcall(command.command,command,args,message)
+						if err then
+							message:reply(err)
+						end
 					end
+				else
+					print("Invalid command: \""..message.content:sub(2,(start or 0)-1).."\"")
 				end
 			else
-				print("Invalid command: \""..message.content:sub(2,(start or 0)-1).."\"")
+				if message.member then
+					for role in message.member.roles do
+						if role.name == "Bot Manager" then
+							status = message.channel
+							break
+						end
+					end
+				end
 			end
 		else
 			local msg = "**Command List:**\n```\n"
@@ -112,7 +124,7 @@ client:on('messageCreate', function(message)
 		for k,v in pairs(commands) do
 			if v.message then
 				local suc,err = pcall(v.message,v,message)
-				if not suc and err then
+				if err then
 					message:reply(err)
 				end
 			end
