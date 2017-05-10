@@ -6,56 +6,74 @@ local client = discordia.Client()
 
 local timer = require('timer')
 local sleep = timer.sleep
+
+local format = string.format --TO-DO: Use this for fasts
+
 math.randomseed(os.time())
 math.random() math.random()
 
-local commands = {}
-function send(to, ...) --Allows the commands to send data to eachother. 'Specially useful for bank features.
-	if commands[to] and commands[to].receive then
-		return commands[to]:receive(...)
-	end
-end
-local help = {}
---Container for common functions and variables we want to use.
-local bot = {discordia=discordia,client=client,path=path,send=send,prefix=prefix,starttime=os.time()} 
+local modified = {} --Last modified times for each command, this allows us to dynamically update commands without stopping the bot!
+local help = {} --Stores information for the help menu
+local commands = {} --The table used to access each command object.
 
-client:on('ready', function()
-	--Initialize
-	os.execute("mkdir "..path.."data")
-	
-	for file in io.popen("ls "..path.."commands/"):lines() do
-		local command=require(path.."commands/"..file)--Some
-		commands[file:sub(1,-5)] = command
-	end
-	for k,command in pairs(commands) do
-		if command.init then
-			--Initialize command
-			local category, description = command:init(bot)
-			--Entry for the help menu.
-			if category then
-				if not help[category] then help[category] = {} end
-				table.insert(help[category],prefix..k.." - "..description)
+local bot = { --Container for common functions and variables we want to use.
+	discordia=discordia, client=client, path=path, prefix=prefix,
+	send=function(to, ...) --Allows the commands to send data to eachother. 'Specially useful for bank features.
+		if commands[to] and commands[to].receive then
+			return commands[to]:receive(...)
+		end
+	end,
+	starttime=os.time()
+}
+
+function check(loadall)
+	local ls = io.popen("ls "..path.."commands/")
+	if ls then
+		for file in ls:lines() do
+			local stat = io.popen("stat -c %Y "..path.."commands/"..file) --"stat -f %m" for mac.
+			if stat then
+				local date = stat:read()
+				if loadall or modified[file] ~= date then
+					modified[file] = date
+					stat:close()
+					
+					local suc, data = pcall(require,path.."commands/"..file)
+					if suc then
+						if data.init then data:init(bot) end
+						commands[file:sub(1,-5)] = data
+						print((loadall and "Loaded " or "Updated ")..file)
+					else
+						print(data)
+					end
+				end
 			end
 		end
 	end
+	ls:close()
+end
+
+client:on('ready', function()
+	--[[Initialization]]
+	os.execute(format("mkdir "..path.."data"))
 	
+	check(true) --Load all the commands.
 	print("Initialized "..table.count(commands).." commands.")
 	
 	client:setGameName(prefix.."help")
-	
 	print("Now running!")
 	
-	--Update
+	--[[Updating]]
 	while true do
     	sleep(1000)
 		for k,v in pairs(commands) do
 			if v.update then
 				local suc,err = pcall(v.update,v)
-				if err then
+				if not suc and err then
 					print(k.." update: "..err)
 				end
 			end
 		end
+		check()
 	end
 end)
 
@@ -69,7 +87,7 @@ client:on('messageCreate', function(message)
 				if command.command then
 					local args = (fin or fin ~= #message.content) and string.split(message.content:sub((fin or 0)+1,-1)," ")
 					local suc,err = pcall(command.command,command,args,message)
-					if err then
+					if not suc and err then
 						message:reply(err)
 					end
 				end
@@ -94,7 +112,7 @@ client:on('messageCreate', function(message)
 		for k,v in pairs(commands) do
 			if v.message then
 				local suc,err = pcall(v.message,v,message)
-				if err then
+				if not suc and err then
 					message:reply(err)
 				end
 			end
