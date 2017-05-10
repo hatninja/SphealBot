@@ -13,7 +13,6 @@ math.randomseed(os.time())
 math.random() math.random()
 
 local modified = {} --Last modified times for each command, this allows us to dynamically update commands without stopping the bot!
-local help = {} --Stores information for the help menu
 local commands = {} --The table used to access each command object.
 
 local bot = { --Container for common functions and variables we want to use.
@@ -83,16 +82,11 @@ client:on('messageCreate', function(message)
 	if message.content:sub(1,#prefix) == prefix then --Commands
 		local start, fin = message.content:find(" ")
 		local name = message.content:sub(2,(start or 0)-1)
-		if name == "help" then
+		if name == "help" then --TO-DO: Add category support.
 			local msg = "**Command List:**\n```\n"
-			for k,v in pairs(help) do
-				msg=msg..k..":\n"
-				for i=1,#v do
-					if #msg + #v[i] > 1995 then
-						message:reply(msg.."\n```")
-						msg = "```\n"
-					end
-					msg=msg..v[i].."\n"
+			for name,command in pairs(commands) do
+				if command.description then
+					msg=msg..prefix..name.." - "..command.description.."\n"
 				end
 			end
 			message:reply(msg.."```")

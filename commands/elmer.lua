@@ -1,4 +1,7 @@
 local elmer = {
+	category = "Chat",
+	description = "Have Elmer Fudd repeat what you say!",
+		
 	translation = {
 		{"double","dubbuh"},
 		{"ll","w"},
@@ -10,10 +13,6 @@ local elmer = {
 		{"$!","l"}
 	}
 }
-
-function elmer:init()
-	return "Chat", "Have Elmer Fudd repeat what you say!"
-end
 
 function elmer:command(args,message)
 	local msg = table.concat(args," ")

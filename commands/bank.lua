@@ -2,6 +2,9 @@
 
 ]]
 local bank = {
+	category = "System",
+	description = "Manage your currency!",
+	
 	nextsave = os.time()+60,
 	changed = true,
 	
@@ -13,8 +16,6 @@ function bank:init(b) --Load from memory!
 	bot = b
 	
 	self:load()
-	
-	return "Mechanic","Manage currency!"
 end
 
 function bank:update()

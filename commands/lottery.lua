@@ -1,6 +1,9 @@
 --Daily lottery function!
 local lotteryratio = 1/3
 local lottery = {
+	category = "System",
+	description = "The daily lottery, share your coins!",
+	
 	channel = false,
 	
 	entrants = {},
@@ -14,8 +17,6 @@ function lottery:init(b)
 	
 	self:reset()
 	self:load()
-	
-	return "Mechanic","The daily lottery, share your coins!"
 end
 
 function lottery:update()
