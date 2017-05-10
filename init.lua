@@ -74,7 +74,6 @@ client:on('ready', function()
 				end
 			end
 		end
-		check()
 	end
 end)
 
@@ -82,31 +81,7 @@ client:on('messageCreate', function(message)
 	if message.content:sub(1,#prefix) == prefix then --Commands
 		local start, fin = message.content:find(" ")
 		local name = message.content:sub(2,(start or 0)-1)
-		if name ~= "help" then
-			if name ~= "here" then
-				local command = commands[name]
-				if command then
-					if command.command then
-						local args = (fin or fin ~= #message.content) and string.split(message.content:sub((fin or 0)+1,-1)," ")
-						local suc,err = pcall(command.command,command,args,message)
-						if err then
-							message:reply(err)
-						end
-					end
-				else
-					print("Invalid command: \""..message.content:sub(2,(start or 0)-1).."\"")
-				end
-			else
-				if message.member then
-					for role in message.member.roles do
-						if role.name == "Bot Manager" then
-							status = message.channel
-							break
-						end
-					end
-				end
-			end
-		else
+		if name == "help" then
 			local msg = "**Command List:**\n```\n"
 			for k,v in pairs(help) do
 				msg=msg..k..":\n"
@@ -119,6 +94,28 @@ client:on('messageCreate', function(message)
 				end
 			end
 			message:reply(msg.."```")
+		elseif name == "here" then
+			if message.member then
+				for role in message.member.roles do
+					if role.name == "Bot Manager" then
+						status = message.channel
+						break
+					end
+				end
+			end
+		else
+			local command = commands[name]
+			if command then
+				if command.command then
+					local args = (fin or fin ~= #message.content) and string.split(message.content:sub((fin or 0)+1,-1)," ")
+					local suc,err = pcall(command.command,command,args,message)
+					if err then
+						message:reply(err)
+					end
+				end
+			else
+				print("Invalid command: \""..message.content:sub(2,(start or 0)-1).."\"")
+			end
 		end
 	elseif message.user ~= client.user then --Plain message
 		for k,v in pairs(commands) do
