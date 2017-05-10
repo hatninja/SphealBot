@@ -12,13 +12,12 @@ local format = string.format --TO-DO: Use this for fasts
 math.randomseed(os.time())
 math.random() math.random()
 
-local status = false
 local modified = {} --Last modified times for each command, this allows us to dynamically update commands without stopping the bot!
 local help = {} --Stores information for the help menu
 local commands = {} --The table used to access each command object.
 
 local bot = { --Container for common functions and variables we want to use.
-	discordia=discordia, client=client, path=path, prefix=prefix, status=status,
+	discordia=discordia, client=client, path=path, prefix=prefix,
 	send=function(to, ...) --Allows the commands to send data to eachother. 'Specially useful for bank features.
 		if commands[to] and commands[to].receive then
 			return commands[to]:receive(...)
@@ -42,7 +41,7 @@ function check(loadall)
 					if suc then
 						if data.init then data:init(bot) end
 						commands[file:sub(1,-5)] = data
-						print((loadall and "Loaded " or "Updated ")..file)
+						print("Loaded "..file)
 					else
 						print(data)
 					end
@@ -74,6 +73,9 @@ client:on('ready', function()
 				end
 			end
 		end
+		if os.time() % 10 == 0 then
+			check()
+		end
 	end
 end)
 
@@ -94,15 +96,6 @@ client:on('messageCreate', function(message)
 				end
 			end
 			message:reply(msg.."```")
-		elseif name == "here" then
-			if message.member then
-				for role in message.member.roles do
-					if role.name == "Bot Manager" then
-						status = message.channel
-						break
-					end
-				end
-			end
 		else
 			local command = commands[name]
 			if command then
