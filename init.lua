@@ -77,16 +77,14 @@ client:on('messageCreate', function(message)
 				for role in message.member.roles do
 					if role.name == "Bot Manager" then
 						local name = message.content:sub((fin or 0)+1,-1)
-						if commands[name] then
-							commands[name] = nil
-							local suc, data = pcall(loadfile(path.."commands/"..name..".lua"),bot)
-							if suc then
-								if data.init then data:init() end
-								commands[name] = data
-								message:reply(format("Resetted %s!",name))
-							else
-								message:reply(data)
-							end
+						commands[name] = nil
+						local suc, data = pcall(loadfile(path.."commands/"..name..".lua"),bot)
+						if suc then
+							if data.init then data:init() end
+							commands[name] = data
+							message:reply(format("Resetted %s!",name))
+						else
+							message:reply(data)
 						end
 						break
 					end
