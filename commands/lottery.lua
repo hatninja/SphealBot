@@ -11,10 +11,8 @@ local lottery = {
 	date = math.floor(os.time()/60/60/24)
 }
 
-local bot = false
-function lottery:init(b)
-	bot = b
-	
+local bot = ...
+function lottery:init()
 	self:reset()
 	self:load()
 end

@@ -1,6 +1,7 @@
 --[[Bank - Implements a currency system and API functions.
 
 ]]
+local bot = ...
 local bank = {
 	category = "System",
 	description = "Manage your currency!",
@@ -11,10 +12,7 @@ local bank = {
 	accounts = {}
 }
 
-local bot = false
-function bank:init(b) --Load from memory!
-	bot = b
-	
+function bank:init() --Load from memory!
 	self:load()
 end
 

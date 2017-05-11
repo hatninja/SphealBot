@@ -1,6 +1,6 @@
 local rps = {
 	category = "Game",
-	description = "Play rock paper scissors with someone!",
+	description = "*WIP* Play rock paper scissors with someone!",
 	
 	matches = {},
 	requests = {},

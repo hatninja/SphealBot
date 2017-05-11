@@ -25,37 +25,22 @@ local bot = { --Container for common functions and variables we want to use.
 	starttime=os.time()
 }
 
-function check(loadall)
-	local ls = io.popen("ls "..path.."commands/")
-	if ls then
-		for file in ls:lines() do
-			local stat = io.popen("stat -c %Y "..path.."commands/"..file) --"stat -f %m" for mac.
-			if stat then
-				local date = stat:read()
-				if loadall or modified[file] ~= date then
-					modified[file] = date
-					stat:close()
-					
-					local suc, data = pcall(require,path.."commands/"..file)
-					if suc then
-						if data.init then data:init(bot) end
-						commands[file:sub(1,-5)] = data
-						print("Loaded "..file)
-					else
-						print(data)
-					end
-				end
-			end
+client:on('ready', function()
+	--[[Initialization]]
+	os.execute(format("mkdir %sdata",path))
+	
+	local ls = io.popen(format("ls %scommands/",path))
+	for file in ls:lines() do
+		local suc, data = pcall(loadfile(path.."commands/"..file),bot)
+		if suc then
+			if data.init then data:init() end
+			commands[file:sub(1,-5)] = data
+		else
+			print(data)
 		end
 	end
 	ls:close()
-end
-
-client:on('ready', function()
-	--[[Initialization]]
-	os.execute(format("mkdir "..path.."data"))
 	
-	check(true) --Load all the commands.
 	print("Initialized "..table.count(commands).." commands.")
 	
 	client:setGameName(prefix.."help")
@@ -72,9 +57,6 @@ client:on('ready', function()
 				end
 			end
 		end
-		if os.time() % 10 == 0 then
-			check()
-		end
 	end
 end)
 
@@ -90,6 +72,26 @@ client:on('messageCreate', function(message)
 				end
 			end
 			message:reply(msg.."```")
+		elseif name == "reset" then
+			if message.member then
+				for role in message.member.roles do
+					if role.name == "Bot Manager" then
+						local name = message.content:sub((fin or 0)+1,-1)
+						if commands[name] then
+							commands[name] = nil
+							local suc, data = pcall(loadfile(path.."commands/"..name..".lua"),bot)
+							if suc then
+								if data.init then data:init() end
+								commands[name] = data
+								message:reply(format("Resetted %s!",name))
+							else
+								message:reply(data)
+							end
+						end
+						break
+					end
+				end
+			end
 		else
 			local command = commands[name]
 			if command then
