@@ -25,7 +25,10 @@ local bot = { --Container for common functions and variables we want to use.
 	starttime=os.time()
 }
 
+local initialized = false
+
 client:on('ready', function()
+	if initialized then return end
 	--[[Initialization]]
 	os.execute(format("mkdir %sdata",path))
 	
@@ -41,9 +44,11 @@ client:on('ready', function()
 	end
 	ls:close()
 	
-	print("Initialized "..table.count(commands).." commands.")
+	print("Initialized "..table.count(commands).." commands.")	
 	
 	client:setGameName(prefix.."help")
+	initialized = true
+	
 	print("Now running!")
 	
 	--[[Updating]]
@@ -52,7 +57,7 @@ client:on('ready', function()
 		for k,v in pairs(commands) do
 			if v.update then
 				local suc,err = pcall(v.update,v)
-				if not suc and err then
+				if err then
 					print(k.." update: "..err)
 				end
 			end

@@ -33,27 +33,29 @@ function lottery:command(args,message)
 					local balance = bot.send("bank","balance",message.author.id)
 					if balance then
 						if balance >= (tonumber(args[2]) or 10) then
-							if bot.send("bank","take",message.author.id,amount) then
-								self.entrants[message.author] = table.count(self.entrants)+1
-								self.jackpot = self.jackpot + amount
-								message:reply("**Daily Lottery:** <@"..message.author.id.."> entered with `"..amount.."P`\nThe jackpot is now `"..math.floor(self.jackpot).."P`")
-							else
-								message:reply("**Daily Lottery:** !")
-							end
+							bot.send("bank","take",message.author.id,amount)
+							self.entrants[message.author] = table.count(self.entrants)+1
+							self.jackpot = self.jackpot + amount
+							
+							message:reply("**Daily Lottery:** <@"..message.author.id.."> entered with `"..amount.."P`\nThe jackpot is now `"..math.floor(self.jackpot).."P`")
+							message:delete()
 						else
-							message:reply("**Daily Lottery:** You don't have enough points!")
+							message:reply("**Daily Lottery:** <@"..message.author.id.."> You don't have enough points!")
+							message:delete()
 						end
 					else
-						message:reply("**Daily Lottery:** You need a bank account!")
+						message:reply("**Daily Lottery:** <@"..message.author.id.."> You need a bank account!")
+						message:delete()
 					end
 				else
-					message:reply("**Daily Lottery:** You've already entered!")
+					message:reply("**Daily Lottery:** <@"..message.author.id.."> You've already entered!")
+					message:delete()
 				end
 			else
-				message:reply("**Daily Lottery:** Invalid number! The minimum is 10P")
+				message:reply("**Daily Lottery:** <@"..message.author.id.."> Invalid number! The minimum is 10P")
+				message:delete()
 			end
 		elseif args[1] == "status" then
-			--message:reply("**Daily Lottery** The lottery has "..table.count(self.entrants).." participants.\nThe jackpot total is `"..math.floor(self.jackpot).."P`\nNumber of Winners: "..math.ceil(table.count(self.entrants) * lotteryratio).."\nMinutes Left: "..((math.floor(os.time()/60/60/24)+1)*24*60)-os.time())
 			message:reply(string.format("**Daily Lottery** Win ratio: %d/%d\nThe jackpot total is `%dP`\nMinutes Left: %.1f", math.ceil(table.count(self.entrants) * lotteryratio), table.count(self.entrants), math.floor(self.jackpot), ((math.floor(os.time()/60/60/24)+1)*24*60)-os.time()/60))
 		elseif args[1] == "reset" then
 			if message.member then
