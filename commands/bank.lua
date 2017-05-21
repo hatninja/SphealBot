@@ -43,6 +43,7 @@ function bank:command(args,message)
 	elseif args[1] == "balance" then
 		if self:getAccount(message.author.id) then
 			message.channel:sendMessage("`"..message.author.username.." has "..self:getAccount(message.author.id).."P`")
+			message:delete()
 		else
 			message.channel:sendMessage("<@"..message.author.id.."> You don't have an account. Please register using \"!bank register\"!")
 		end
@@ -90,7 +91,7 @@ function bank:command(args,message)
 			for role in message.member.roles do
 				if role.name == "Bot Manager" then
 					self:save()
-					message:reply("Saved!")
+					message:reply("Bank saved!")
 					break
 				end
 			end
