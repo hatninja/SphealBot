@@ -1,6 +1,6 @@
 local poketrivia ={
 	category = "Game",
-	decription = "Test your pokemon knowledge!",
+	description = "Test your pokemon knowledge!",
 	
 	matches = {}
 }

@@ -36,13 +36,16 @@ client:on('ready', function()
 	for file in ls:lines() do
 		local suc, data = pcall(loadfile(path.."commands/"..file),bot)
 		if suc then
-			if data.init then data:init() end
 			commands[file:sub(1,-5)] = data
 		else
 			print(data)
 		end
 	end
 	ls:close()
+	
+	for k,v in pairs(commands) do
+		if v.init then v:init() end
+	end
 	
 	print("Initialized "..table.count(commands).." commands.")	
 	
@@ -62,6 +65,7 @@ client:on('ready', function()
 				end
 			end
 		end
+		if os.time() % 60 == 0 then collectgarbage() end
 	end
 end)
 
