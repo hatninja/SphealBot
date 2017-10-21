@@ -1,39 +1,56 @@
+local bot = ...
 local poketrivia ={
 	category = "Game",
 	description = "Test your pokemon knowledge!",
 	
-	matches = {}
+	matches = {},
+	
+	channel = false, --Doesn't support multiple servers yet.
 }
 
 local pokes = {}
 local pokedex = false
 
+function poketrivia:init()
+	self:load()
+end
+
 function poketrivia:command(args,message)
-	if message.channel.guild then
-		if not self.matches[message.channel.guild.id] then
-			self.matches[message.channel.guild.id] = {
-				channel = message.channel,
-				count = 0,
-				spamcount = 0,
-				ntime = os.time()+15,
-				stime = os.time()+15,
-				answer = "",
-				bonus = "",
-				
-				points = {},
-			}
-			message.channel:sendMessage("**A Poketriva match will now start in 15 seconds!**")
+	if message.member then
+		if args[1] == "here" then
+			if message.member then
+				for k,role in pairs(message.member.roles) do
+					if role.name == "Bot Manager" then
+						self.channel = message.channel
+						self:save()
+						message:reply("Poketrivia is now set up here!")
+					end
+				end
+			end
 		else
-			message.channel:sendMessage("<@"..message.author.id.."> A poketrivia match is already going on!")
+			if not self.matches[message.channel.guild.id] then
+				self.matches[message.channel.guild.id] = {
+					channel = self.channel,
+					count = 0,
+					spamcount = 0,
+					ntime = os.time()+15,
+					stime = os.time()+15,
+					answer = "",
+					bonus = "",
+					
+					points = {},
+				}
+				self.channel:send("**A Poketriva match will now start in 15 seconds!**")
+			else
+				message:reply("<@"..message.author.id.."> A poketrivia match is already going on!")
+			end
 		end
 	else
-		message.channel:sendMessage("**Poketrivia is not available for DM!**")
+		message:reply("**Poketrivia is not available for DM!**")
 	end
 end
 
 local function cleananswer(ans) return string.lower(tostring(ans)):gsub("[^a-z0-9]",""):gsub("alolan","alola") end
-
-local bot = ...
 
 function poketrivia:message(message)
 	local msg = message.content
@@ -43,7 +60,7 @@ function poketrivia:message(message)
 		if match.answer ~= "" then
 			if cleananswer(msg) == cleananswer(match.bonus) and match.bonus ~= "" then
 				match.points[message.author.id] = match.points[message.author.id] and match.points[message.author.id]+1 or 1
-				match.channel:sendMessage("You got it "..(message.author.username).."! **+1** to you! (+2P for bonus answer!)")
+				match.channel:send("You got it "..(message.author.username).."! **+1** to you! (+2P for bonus answer!)")
 				bot.send("bank","give",message.author.id,3)
 			
 				match.ntime = os.time()+3
@@ -51,7 +68,7 @@ function poketrivia:message(message)
 				match.bonus = ""
 			elseif cleananswer(msg) == cleananswer(match.answer) and match.answer ~= "" then
 				match.points[message.author.id] = match.points[message.author.id] and match.points[message.author.id]+1 or 1
-				match.channel:sendMessage("You got it "..(message.author.username).."! **+1** to you!")
+				match.channel:send("You got it "..(message.author.username).."! **+1** to you!")
 				bot.send("bank","give",message.author.id,1)
 			
 				match.ntime = os.time()+3
@@ -141,15 +158,15 @@ function poketrivia:update()
 						
 						match.answer = answer
 						match.bonus = bonus
-						match.channel:sendMessage{content="**Question number "..match.count.."!**\n",embed={image={url=imageurl,width=96,height=96}}}
-						match.channel:sendMessage(question)
+						match.channel:send{content="**Question number "..match.count.."!**\n",embed={image={url=imageurl,width=96,height=96}}}
+						match.channel:send(question)
 					else
-						match.channel:sendMessage("Oh... i'm pretty sure the answer was "..(match.bonus or match.answer).."!")
+						match.channel:send("Oh... i'm pretty sure the answer was "..(match.bonus or match.answer).."!")
 						match.ntime = os.time()+3
 						match.answer = ""
 					end
 				else
-					match.channel:sendMessage("Guys? ...I guess i'll stop then.")
+					match.channel:send("Guys? ...I guess i'll stop then.")
 					self.matches[id] = nil
 				end
 			else
@@ -164,13 +181,27 @@ function poketrivia:update()
 						message = message .. "<@"..k..">" .. " - "..v.."\n"
 					end
 				end
-				match.channel:sendMessage(message.."Thanks for playing!")
+				match.channel:send(message.."Thanks for playing!")
 				for k,v in pairs(match.points) do
 					bot.send("bank","give",k,5)
 				end
 				self.matches[id] = nil
 			end
 		end
+	end
+end
+
+function poketrivia:save()
+	local file = io.open(bot.path.."data/poketrivialocation", "w")
+	file:write(self.channel.id)
+	file:close()
+end
+
+function poketrivia:load()
+	local file = io.open(bot.path.."data/poketrivialocation", "r")
+	if file then
+		self.channel = bot.client:getChannel(file:read())
+		file:close()
 	end
 end
 

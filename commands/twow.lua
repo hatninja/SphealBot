@@ -1,7 +1,7 @@
 local bot = ...
 local twow = {
 	category = "Game",
-	description = "Ten Words of Wisdom (Look it up!)",
+	description = "*WIP* Ten Words of Wisdom (Look it up!)",
 	
 	channel=false,
 	
@@ -18,7 +18,7 @@ function twow:command(args,message)
 	if message.member then
 		if args[1] == "here" then
 			if message.member then
-				for role in message.member.roles do
+				for k,role in pairs(message.member.roles) do
 					if role.name == "Bot Manager" then
 						self.channel = message.channel
 						self:save()

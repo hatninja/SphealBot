@@ -1,6 +1,38 @@
 local prefix = "!"
 local path = debug.getinfo(1, "S").source:sub(2,-9)
 
+--For whatever reason, these aren't implemented in Discordia anymore.
+function string.split(input,delimit)
+	local t = {}
+	local string = tostring(input)
+	local delimiter = tostring(delimit) or ""
+	
+	if delimiter and delimiter ~= "" then
+		while string:find(delimiter) do
+			local beginning, ending = string:find(delimiter)
+			table.insert(t,string:sub(1,beginning-1))
+			string = string:sub(ending+1)
+		end
+		if not string:find(delimiter) then
+			table.insert(t,string)
+		end
+	else
+		for i = 1, #string do
+			table.insert(t,string:sub(i,i))
+		end
+	end
+	
+	return t
+end
+
+function table.count(t)
+	local count = 0
+	for k,v in pairs(t) do
+		count = count + 1
+	end
+	return count
+end
+
 local discordia = require('discordia')
 local client = discordia.Client()
 
@@ -48,7 +80,7 @@ client:on('ready', function()
 	
 	print("Initialized "..table.count(commands).." commands.")	
 	
-	client:setGameName(prefix.."help")
+	client:setGame(prefix.."help")
 	initialized = true
 	
 	print("Now running!")
@@ -81,7 +113,7 @@ client:on('messageCreate', function(message)
 			message:reply(msg.."```")
 		elseif name == "reset" then
 			if message.member then
-				for role in message.member.roles do
+				for k,role in pairs(message.member.roles) do
 					if role.name == "Bot Manager" then
 						local name = message.content:sub((fin or 0)+1,-1)
 						commands[name] = nil
@@ -121,12 +153,11 @@ client:on('messageCreate', function(message)
 			end
 		end
 	end
-	bot.client:removeMessage(message)
 end)
 
 local file = io.open(path.."token.txt","r")
 if file then
-	client:run(file:read())
+	client:run("Bot "..file:read())
 	file:close()
 else
 	print("Please place your token in a token.txt at the project root.")

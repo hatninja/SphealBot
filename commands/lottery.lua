@@ -13,6 +13,7 @@ local lottery = {
 }
 
 local bot = ...
+
 function lottery:init()
 	self:reset()
 	self:load()
@@ -66,12 +67,11 @@ function lottery:command(args,message)
 	--Mod commands
 	if args[1] == "here" then
 		if message.member then
-			for role in message.member.roles do
+			for k,role in pairs(message.member.roles) do
 				if role.name == "Bot Manager" then
 					self.channel = message.channel
 					self:save()
 					message:reply("**Daily Lottery** is now set up in "..self.channel.mentionString.."!")
-					break
 				end
 			end
 		end
@@ -89,7 +89,7 @@ function lottery:reset()
 		for user,count in pairs(self.entrants) do
 			if randomtable[random] == count then
 				bot.send("bank","give",user.id,self.jackpot/winners)
-				self.channel:sendMessage("**Daily Lottery:** <@"..user.id.."> won the Jackpot! `+"..math.floor(self.jackpot/winners).."P`")
+				self.channel:send("**Daily Lottery:** <@"..user.id.."> won the Jackpot! `+"..math.floor(self.jackpot/winners).."P`")
 			end
 		end
 		table.remove(randomtable,random)
@@ -98,7 +98,7 @@ function lottery:reset()
 	
 	
 	if self.channel then
-		self.channel:sendMessage("**Daily Lottery:** A new daily lottery is now running, feel free to enter!")
+		self.channel:send("**Daily Lottery:** A new daily lottery is now running, feel free to enter!")
 	end
 	
 	self.entrants = {}

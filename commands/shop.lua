@@ -60,37 +60,33 @@ function shop:command(args,message)
 			end
 		--Mod commands
 		elseif args[1] == "addrole" then
-			if message.member then
-				for role in message.member.roles do
-					if role.name == "Bot Manager" then
-						
-						local name = table.concat({args[2],args[3]}," ")
-						for role in message.guild.roles do
-							if role.name == name then
-								self:addRoleItem(role,20)
-								message:reply("**Points Shop** Added "..role.name.."!")
-								break
-							end
+			for k,role in pairs(message.member.roles) do
+				if role.name == "Bot Manager" then
+					
+					local name = table.concat({args[2],args[3]}," ")
+					for k,role in pairs(message.guild.roles) do
+						if role.name == name then
+							self:addRoleItem(role,20)
+							message:reply("**Points Shop** Added "..role.name.."!")
+							break
 						end
-						self:saveroles()
-						
 					end
+					self:saveroles()
+					
 				end
 			end
 		elseif args[1] == "removerole" then
-			if message.member then
-				for role in message.member.roles do
-					if role.name == "Bot Manager" then
-						
-						for i=2,#args do
-							local id = tonumber(args[i])
-							if self.roles[id] then
-								self.roles[id] = nil
-							end
+			for k,role in pairs(message.member.roles) do
+				if role.name == "Bot Manager" then
+					
+					for i=2,#args do
+						local id = tonumber(args[i])
+						if self.roles[id] then
+							self.roles[id] = nil
 						end
-						self:saveroles()
-						
 					end
+					self:saveroles()
+						
 				end
 			end
 		else

@@ -35,17 +35,17 @@ end
 function bank:command(args,message)
 	if args[1] == "register" then
 		if self:getAccount(message.author.id) then
-			message.channel:sendMessage("<@"..message.author.id.."> You already have an account!")
+			message.channel:send("<@"..message.author.id.."> You already have an account!")
 		else
 			self:newAccount(message.author.id,100)
-			message.channel:sendMessage("<@"..message.author.id.."> New account created! You have been given a starting boost of 100P!")
+			message.channel:send("<@"..message.author.id.."> New account created! You have been given a starting boost of 100P!")
 		end
 	elseif args[1] == "balance" then
 		if self:getAccount(message.author.id) then
-			message.channel:sendMessage("`"..message.author.username.." has "..self:getAccount(message.author.id).."P`")
+			message.channel:send("`"..message.author.username.." has "..self:getAccount(message.author.id).."P`")
 			message:delete()
 		else
-			message.channel:sendMessage("<@"..message.author.id.."> You don't have an account. Please register using \"!bank register\"!")
+			message.channel:send("<@"..message.author.id.."> You don't have an account. Please register using \"!bank register\"!")
 		end
 	elseif args[1] == "transfer" then
 		if self:getAccount(message.author.id) then
@@ -66,29 +66,29 @@ function bank:command(args,message)
 									
 									self.accounts[message.author.id][2] = os.time()+30
 									
-									message.channel:sendMessage(message.author.username.." transferred "..amount.."P!")
+									message.channel:send(message.author.username.." transferred "..amount.."P!")
 								else
-									message.channel:sendMessage("<@"..message.author.id.."> You do not have enough points!")
+									message.channel:send("<@"..message.author.id.."> You do not have enough points!")
 								end
 							else
-								message.channel:sendMessage("<@"..message.author.id.."> Please put in your amount!")
+								message.channel:send("<@"..message.author.id.."> Please put in your amount!")
 							end
 						end
 					else
-						message.channel:sendMessage("<@"..message.author.id.."> That user does not have an account!")
+						message.channel:send("<@"..message.author.id.."> That user does not have an account!")
 					end
 				else
-					message.channel:sendMessage("<@"..message.author.id.."> Please specify a receipient!")
+					message.channel:send("<@"..message.author.id.."> Please specify a receipient!")
 				end
 			else
-				message.channel:sendMessage("<@"..message.author.id.."> Please wait a bit before you transfer again.")
+				message.channel:send("<@"..message.author.id.."> Please wait a bit before you transfer again.")
 			end
 		else
-			message.channel:sendMessage("<@"..message.author.id.."> You don't have an account. Please register using \"_bank register\"!")
+			message.channel:send("<@"..message.author.id.."> You don't have an account. Please register using \"_bank register\"!")
 		end
 	elseif args[1] == "save" then
 		if message.member then
-			for role in message.member.roles do
+			for k,role in pairs(message.member.roles) do
 				if role.name == "Bot Manager" then
 					self:save()
 					message:reply("Bank saved!")
@@ -97,7 +97,7 @@ function bank:command(args,message)
 			end
 		end
 	else
-		message.channel:sendMessage("```!bank register - Makes a new bank account.\n!bank balance - Check your balance.\n!bank transfer [@receipient] [amount] - Transfer your points to another user.```")
+		message.channel:send("```!bank register - Makes a new bank account.\n!bank balance - Check your balance.\n!bank transfer [@receipient] [amount] - Transfer your points to another user.```")
 	end
 end
 

@@ -21,7 +21,7 @@ function rps:command(args,message)
 				vs = user,
 				channel = message.channel
 			}
-			user:sendMessage(message.user.username.." challenges you to Rock Paper Scissors!\nDo you accept?")
+			user:send(message.user.username.." challenges you to Rock Paper Scissors!\nDo you accept?")
 			message:reply("<@"..message.user.id.."> challenged <@"..user.id.."> to Rock Paper Scissors!")
 			
 		end
@@ -35,7 +35,7 @@ function rps:message(message)
 		if string.lower(message.content:sub(1,1)) == "y" then
 			for k,v in pairs(self.requests) do
 				if v.vs == message.user then
-					v.channel:sendMessage("<@"..(v.vs.id).."> accepted! Match starting...")
+					v.channel:send("<@"..(v.vs.id).."> accepted! Match starting...")
 					self.matches[k] = v
 					self.requests[k] = nil
 					break
@@ -45,7 +45,7 @@ function rps:message(message)
 		elseif string.lower(message.content:sub(1,1)) == "n" then
 			for k,v in pairs(self.requests) do
 				if v.vs == message.user then
-					v.channel:sendMessage("<@"..(v.vs.id).."> declined!")
+					v.channel:send("<@"..(v.vs.id).."> declined!")
 					self.requests[k] = nil
 					break
 				end
@@ -68,8 +68,8 @@ function rps:wait(k)
 	match.round = (match.round or 0)+1
 
 	local msg = "Round "..match.round.."!\nEnter your choice! (R)ock/(P)aper/(S)cissors)"
-	k:sendMessage(msg)
-	match.vs:sendMessage(msg)
+	k:send(msg)
+	match.vs:send(msg)
 end
 
 function rps:submit(user,hand)
@@ -80,7 +80,7 @@ function rps:submit(user,hand)
 		else
 			match.choicec = hand
 		end
-		user:sendMessage("Setting to "..self:geticon(hand))
+		user:send("Setting to "..self:geticon(hand))
 		
 		if match.choiced and match.choicec then
 			local winner
