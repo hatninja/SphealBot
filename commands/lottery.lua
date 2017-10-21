@@ -2,11 +2,12 @@
 local lotteryratio = 1/3
 local lottery = {
 	category = "System",
-	description = "The daily lottery, share your coins!",
+	description = "Share or get coins in the lottery!",
 	
 	channel = false,
 	
 	entrants = {},
+	
 	jackpot = 0,
 	date = math.floor(os.time()/60/60/24)
 }
@@ -57,15 +58,6 @@ function lottery:command(args,message)
 			end
 		elseif args[1] == "status" then
 			message:reply(string.format("**Daily Lottery** Win ratio: %d/%d\nThe jackpot total is `%dP`\nMinutes Left: %.1f", math.ceil(table.count(self.entrants) * lotteryratio), table.count(self.entrants), math.floor(self.jackpot), ((math.floor(os.time()/60/60/24)+1)*24*60)-os.time()/60))
-		elseif args[1] == "reset" then
-			if message.member then
-				for role in message.member.roles do
-					if role.name == "Bot Manager" then
-						self:reset()
-						break
-					end
-				end
-			end
 		else
 			message:reply("**Daily Lottery** enter daily lotterys using `!lottery enter (optional amount)`!\nYou can check the status using `!lottery status`")
 		end
@@ -114,7 +106,7 @@ function lottery:reset()
 end
 
 function lottery:save()
-	local file = io.open(bot.path.."data/lotterylocation", "w") --For some reason, this crashes!
+	local file = io.open(bot.path.."data/lotterylocation", "w")
 	file:write(self.channel.id)
 	file:close()
 end

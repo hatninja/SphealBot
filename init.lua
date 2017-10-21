@@ -12,7 +12,6 @@ local format = string.format --TO-DO: Use this for fasts
 math.randomseed(os.time())
 math.random() math.random()
 
-local modified = {} --Last modified times for each command, this allows us to dynamically update commands without stopping the bot!
 local commands = {} --The table used to access each command object.
 
 local bot = { --Container for common functions and variables we want to use.
@@ -65,7 +64,6 @@ client:on('ready', function()
 				end
 			end
 		end
-		if os.time() % 60 == 0 then collectgarbage() end
 	end
 end)
 
@@ -123,6 +121,7 @@ client:on('messageCreate', function(message)
 			end
 		end
 	end
+	bot.client:removeMessage(message)
 end)
 
 local file = io.open(path.."token.txt","r")
