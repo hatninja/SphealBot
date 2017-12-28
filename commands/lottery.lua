@@ -1,8 +1,8 @@
 --Daily lottery function!
 local lotteryratio = 1/3
 local lottery = {
-	category = "System",
-	description = "Share or get coins in the lottery!",
+	--category = "System",
+	--description = "Share or get coins in the lottery!",
 	
 	channel = false,
 	
@@ -15,13 +15,13 @@ local lottery = {
 local bot = ...
 
 function lottery:init()
-	self:reset()
-	self:load()
+	--self:reset()
+	--self:load()
 end
 
 function lottery:update()
 	if self.date ~= math.floor(os.time()/60/60/24) then --It's a new day!
-		self:reset() --Give the prize to the winner and start again.
+		--self:reset() --Give the prize to the winner and start again.
 		self.date = math.floor(os.time()/60/60/24)
 	end
 end

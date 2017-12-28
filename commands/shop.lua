@@ -4,8 +4,24 @@ local shop = {
 	category = "System",
 	description = "Points Shop - Personalize with your points!",
 	
-	roles = {[0]={"",0},
-	}, 
+	roles = {}, 
+	
+	categories = {
+		role = {
+			items = {
+			},
+			buyItem = function(id,args,message)
+			end,
+			addItem = function(args,message)
+			end,
+			removeItem = function(args,message)
+			end,
+			saveItem = function(item)
+			end,
+			loadItem = function(line)
+			end,
+		}
+	}
 }
 
 function shop:init()
@@ -32,7 +48,7 @@ function shop:command(args,message)
 				if item then
 					local balance = bot.send("bank","balance",message.author.id)
 					if not balance then message:reply("**Points Shop** You don't have an account!");return end
-					if balance <= item[2] then message:reply("**Points Shop** You don't have enough points!");return end
+					if balance < item[2] then message:reply("**Points Shop** You don't have enough points!");return end
 					
 					for i,item in pairs(self.roles) do --Remove pre-existing roles.
 						if i ~= 0 then
@@ -132,7 +148,16 @@ function shop:loadroles()
 		for line in file:lines() do
 			local data = string.split(line,":")
 			if #data > 1 then
-				self:addRoleItem(bot.client:getRole(data[1]),tonumber(data[2]))
+				local role
+				for k,guild in pairs(bot.client.guilds) do
+					local find = guild:getRole(data[1])
+					if find then
+						role = find
+					end
+				end
+				if role then
+					self:addRoleItem(role,tonumber(data[2]))
+				end
 			end
 		end
 		file:close()

@@ -11,6 +11,8 @@ local poketrivia ={
 local pokes = {}
 local pokedex = false
 
+local cooldowntime = 5
+
 function poketrivia:init()
 	self:load()
 end
@@ -54,24 +56,26 @@ local function cleananswer(ans) return string.lower(tostring(ans)):gsub("[^a-z0-
 
 function poketrivia:message(message)
 	local msg = message.content
-	if self.matches[message.channel.guild.id] and message.channel == self.matches[message.channel.guild.id].channel then
-		local match = self.matches[message.channel.guild.id]
+	if message.guild and self.matches[message.guild.id] and message.channel == self.matches[message.guild.id].channel then
+		local match = self.matches[message.guild.id]
 		match.spamcount = 0
 		if match.answer ~= "" then
 			if cleananswer(msg) == cleananswer(match.bonus) and match.bonus ~= "" then
 				match.points[message.author.id] = match.points[message.author.id] and match.points[message.author.id]+1 or 1
-				match.channel:send("You got it "..(message.author.username).."! **+1** to you! (+2P for bonus answer!)")
-				bot.send("bank","give",message.author.id,3)
+				local points = 2
+				if match.shiny then points = 10 end
+				match.channel:send("You got it "..(message.author.username).."! **+1** to you! The answer was "..(match.bonus or match.answer).."! (+"..points.."P for best answer!)")
+				bot.send("bank","give",message.author.id,1+points)
 			
-				match.ntime = os.time()+3
+				match.ntime = os.time()+cooldowntime
 				match.answer = ""
 				match.bonus = ""
 			elseif cleananswer(msg) == cleananswer(match.answer) and match.answer ~= "" then
 				match.points[message.author.id] = match.points[message.author.id] and match.points[message.author.id]+1 or 1
-				match.channel:send("You got it "..(message.author.username).."! **+1** to you!")
+				match.channel:send("You got it "..(message.author.username).."! **+1** to you! The answer was "..(match.bonus or match.answer).."!")
 				bot.send("bank","give",message.author.id,1)
 			
-				match.ntime = os.time()+3
+				match.ntime = os.time()+cooldowntime
 				match.answer = ""
 				match.bonus = ""
 			end
@@ -89,57 +93,84 @@ function poketrivia:newanswer()
 	end
 	
 	local rand2 = math.random(1,4)
+	local rand3 = math.random(1,50)
 	
 	local imageurl = "http://play.pokemonshowdown.com/sprites/bw/"..name..".png"
 	local question
 	local answer
 	local bonus
 	
-	if rand2 == 1 then
-		question = "**A. Who's that pokemon?**"
-		answer = poke.basename or poke.name
-		if poke.basename then bonus = poke.name end
-	elseif rand2 == 2 then
-		question = "**B. What is this pokemon's typing?**"
-		if #poke.types == 2 then
-			answer = poke.types[2].." "..poke.types[1]
-			bonus = poke.types[1].." "..poke.types[2]
-		else
-			answer = poke.types[1]
+	if rand3 ~= 1 then
+		if rand2 == 1 then
+			if poke.evos and #poke.evos == 1 then
+				question = "C. What does this pokemon evolve into?"
+				answer = pokedex[poke.evos[1]].basename or pokedex[poke.evos[1]].name
+			elseif poke.prevo then
+				question = "C. What pokemon does this evolve from?"
+				answer = pokedex[poke.prevo].basename or pokedex[poke.prevo].name
+			else
+				rand2 = math.random(2,4)
+			end
 		end
-	elseif rand2 == 3 then
-		if poke.evos and #poke.evos == 1 then
-			question = "**C. What does this pokemon evolve into?**"
-			answer = pokedex[poke.evos[1]].basename or pokedex[poke.evos[1]].name
-		elseif poke.prevo then
-			question = "**D. What pokemon does this evolve from?**"
-			answer = pokedex[poke.prevo].basename or pokedex[poke.prevo].name
-		else
-			rand2 = 4
+		if rand2 == 2 then
+			question = "B. What is this pokemon's typing?"
+			if #poke.types == 2 then
+				answer = poke.types[2].." "..poke.types[1]
+				bonus = poke.types[1].." "..poke.types[2]
+			else
+				answer = poke.types[1]
+			end
+		elseif rand2 == 3 then
+			question = "A. Who's that pokemon?"
+			answer = poke.basename or poke.name
+			if poke.basename then bonus = poke.name end
+		elseif rand2 == 4 then
+			question = "D. From what region is this pokemon first seen?"
+			if (poke.forme == "Alola" or poke.id >= 722 and poke.id <= 802) then
+				answer = "Alola"
+			elseif poke.forme == "Mega" or poke.forme == "Mega-X" or poke.forme == "Mega-Y" or (poke.id >= 650 and poke.id <= 721) then
+				answer = "Kalos"
+			elseif poke.basename == "Pikachu" or (poke.id >= 494 and poke.id <= 649) then
+				answer = "Unova"
+			elseif (poke.id >= 387 and poke.id <= 493) then
+				answer = "Sinnoh"
+			elseif (poke.id >= 252 and poke.id <= 386) then
+				answer = "Hoenn"
+			elseif (poke.id >= 152 and poke.id <= 251) then
+				answer = "Johto"
+			else
+				answer = "Kanto"
+			end
 		end
-	end
-	if rand2 == 4 then
-		question = "**E. What generation is this pokemon from?** \nAnswer \"generation (0-7)\""
-		if (poke.forme == "Alola" or poke.id >= 722 and poke.id <= 802) then
-			answer = "7"
-		elseif poke.forme == "Mega" or poke.forme == "Mega-X" or poke.forme == "Mega-Y" or poke.forme == "Primal" or (poke.id >= 650 and poke.id <= 721) then
-			answer = "6"
-		elseif poke.basename == "Pikachu" or (poke.id >= 494 and poke.id <= 649) then
-			answer = "5"
-		elseif poke.basename == "Pichu" or (poke.id >= 387 and poke.id <= 493) then
-			answer = "4"
-		elseif (poke.id >= 252 and poke.id <= 386) then
-			answer = "3"
-		elseif (poke.id >= 152 and poke.id <= 251) then
-			answer = "2"
-		else
-			answer = "1"
+	else --Rare question
+		question = "***SHINY QUESTION***"
+		local rand4 = math.random(1,4)
+		if rand4 == 4 then
+			if poke.evos and poke.evolevel then
+				question = question.." What level does this Pokemon Evolve at?"
+				bonus = tostring(poke.evolevel)
+			else
+				rand4 = math.random(1,3)
+			end
 		end
-		answer = "Generation "..answer
+		if rand4 == 1 then
+			question = question.." How high is this pokemon in Meters?"
+			bonus = tostring(poke.heightm)
+		end
+		if rand4 == 2 then
+			question = question.." How heavy is this pokemon in Kilograms?"
+			bonus = tostring(poke.weightkg)
+		end
+		if rand4 == 3 then
+			question = question.." What is this pokemon's stat total?"
+			local total = 0
+			for k,v in pairs(poke.baseStats) do total = total + v end
+			bonus = tostring(total)
+		end
 	end
 	--print(name..".png")
 	
-	return answer, question, imageurl, bonus, rand2
+	return answer, question, imageurl, bonus, (rand3 == 1)
 end
 
 function poketrivia:update()
@@ -152,17 +183,17 @@ function poketrivia:update()
 					if match.answer == "" then --Cooldown!
 						match.count = match.count + 1
 						match.spamcount = match.spamcount + 1
-						match.ntime = match.ntime + 25
+						match.ntime = match.ntime + 20
 						
-						local answer, question, imageurl, bonus, t = self:newanswer()
+						local answer, question, imageurl, bonus, shiny = self:newanswer()
 						
 						match.answer = answer
 						match.bonus = bonus
-						match.channel:send{content="**Question number "..match.count.."!**\n",embed={image={url=imageurl,width=96,height=96}}}
-						match.channel:send(question)
+						match.shiny = shiny
+						match.channel:send{content="**Question number "..match.count.."!**\n"..question,embed={image={url=imageurl,width=96,height=96}}}
 					else
 						match.channel:send("Oh... i'm pretty sure the answer was "..(match.bonus or match.answer).."!")
-						match.ntime = os.time()+3
+						match.ntime = os.time()+cooldowntime
 						match.answer = ""
 					end
 				else
@@ -173,12 +204,12 @@ function poketrivia:update()
 				local message = ""
 				if table.count(match.points) == 1 then
 					for k,v in pairs(match.points) do
-						local time = os.time()-match.stime
-						message = message.."<@"..k.."> Your time is "..math.floor(time/60)..":"..(time%60).."!\n"
+						local time = (os.time()-match.stime)-(match.count*cooldowntime)
+						message = message..string.format("<@%s> Your time is %d:%2.2f!\n",k,math.floor(time/60),(time%60))
 					end
 				else
 					for k,v in pairs(match.points) do
-						message = message .. "<@"..k..">" .. " - "..v.."\n"
+						message = message .. "<@"..k..">" .. " - Questions Got: "..v.."\n"
 					end
 				end
 				match.channel:send(message.."Thanks for playing!")

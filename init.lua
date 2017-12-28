@@ -1,39 +1,11 @@
 local prefix = "!"
 local path = debug.getinfo(1, "S").source:sub(2,-9)
 
---For whatever reason, these aren't implemented in Discordia anymore.
-function string.split(input,delimit)
-	local t = {}
-	local string = tostring(input)
-	local delimiter = tostring(delimit) or ""
-	
-	if delimiter and delimiter ~= "" then
-		while string:find(delimiter) do
-			local beginning, ending = string:find(delimiter)
-			table.insert(t,string:sub(1,beginning-1))
-			string = string:sub(ending+1)
-		end
-		if not string:find(delimiter) then
-			table.insert(t,string)
-		end
-	else
-		for i = 1, #string do
-			table.insert(t,string:sub(i,i))
-		end
-	end
-	
-	return t
-end
-
-function table.count(t)
-	local count = 0
-	for k,v in pairs(t) do
-		count = count + 1
-	end
-	return count
-end
+local LON = require(path.."lon")
 
 local discordia = require('discordia')
+discordia.extensions()
+
 local client = discordia.Client()
 
 local timer = require('timer')
@@ -47,7 +19,7 @@ math.random() math.random()
 local commands = {} --The table used to access each command object.
 
 local bot = { --Container for common functions and variables we want to use.
-	discordia=discordia, client=client, path=path, prefix=prefix,
+	discordia=discordia, client=client, path=path, prefix=prefix, LON=LON, botmod="Bot Manager", sleep=timer.sleep,
 	send=function(to, ...) --Allows the commands to send data to eachother. 'Specially useful for bank features.
 		if commands[to] and commands[to].receive then
 			return commands[to]:receive(...)
@@ -100,6 +72,7 @@ client:on('ready', function()
 end)
 
 client:on('messageCreate', function(message)
+	if message.author.id == client.user.id then return end
 	if message.content:sub(1,#prefix) == prefix then --Commands
 		local start, fin = message.content:find(" ")
 		local name = message.content:sub(2,(start or 0)-1)
@@ -122,8 +95,10 @@ client:on('messageCreate', function(message)
 							if data.init then data:init() end
 							commands[name] = data
 							message:reply(format("Resetted %s!",name))
+							message:delete()
 						else
 							message:reply(data)
+							message:delete()
 						end
 						break
 					end
@@ -155,10 +130,35 @@ client:on('messageCreate', function(message)
 	end
 end)
 
+client:on('reactionAdd', function(reaction, userid)
+	if userid == client.user.id then return end
+	for k,v in pairs(commands) do
+		if v.reactionAdd then
+			local suc,err = pcall(v.reactionAdd,v,reaction,userid)
+			if err then
+				print(k.." reactionAdd: "..err)
+			end
+		end
+	end
+end)
+
+client:on('reactionRemove', function(reaction, userid)
+	if userid == client.user.id then return end
+	for k,v in pairs(commands) do
+		if v.reactionRemove then
+			local suc,err = pcall(v.reactionRemove,v,reaction,userid)
+			if err then
+				print(k.." reactionRemove: "..err)
+			end
+		end
+	end
+end)
+
+
 local file = io.open(path.."token.txt","r")
 if file then
 	client:run("Bot "..file:read())
 	file:close()
 else
-	print("Please place your token in a token.txt at the project root.")
+	print("No token.txt detected!")
 end
